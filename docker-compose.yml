@@ -1,0 +1,75 @@
+services:
+  tradingagents:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: tradingagents:latest
+    container_name: tradingagents_app
+    env_file:
+      - .env
+    environment:
+      - TRADINGAGENTS_RESULTS_DIR=/app/results
+    volumes:
+      - ./results:/app/results
+      - ./tradingagents/dataflows/data_cache:/app/tradingagents/dataflows/data_cache
+    depends_on:
+      redis:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+
+  # ── WebUI backend (FastAPI) ──────────────────────────────────────────────────
+  webui-backend:
+    build:
+      context: .
+      dockerfile: webui/Dockerfile.backend
+    image: tradingagents-webui-backend:latest
+    container_name: tradingagents_webui_backend
+    env_file:
+      - .env
+    environment:
+      - TRADINGAGENTS_RESULTS_DIR=/app/results
+    volumes:
+      - ./results:/app/results
+      - ./tradingagents/dataflows/data_cache:/app/tradingagents/dataflows/data_cache
+    ports:
+      - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── WebUI frontend (SvelteKit / Node) ────────────────────────────────────────
+  webui-frontend:
+    build:
+      context: ./webui/frontend
+      dockerfile: ../Dockerfile.frontend
+    image: tradingagents-webui-frontend:latest
+    container_name: tradingagents_webui_frontend
+    environment:
+      # The browser talks directly to the backend on the exposed port.
+      # Change the host/port if you use a reverse proxy.
+      - ORIGIN=http://localhost:3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - webui-backend
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: tradingagents_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  redis_data:

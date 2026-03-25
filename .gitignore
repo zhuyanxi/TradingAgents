@@ -217,3 +217,21 @@ __marimo__/
 
 # Cache
 **/data_cache/
+
+# node modules
+node_modules/
+
+# WebUI / SvelteKit
+.svelte-kit/
+vite.config.ts.timestamp-*
+*.tsbuildinfo
+!webui/frontend/src/lib/
+
+# OS / editor noise
+.DS_Store
+.idea/
+
+# Runtime outputs
+results/
+reports/
+eval_results/
