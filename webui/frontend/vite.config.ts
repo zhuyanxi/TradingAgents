@@ -8,7 +8,7 @@ export default defineConfig({
     proxy: {
       // In development, proxy /api/* to the FastAPI backend
       '/api': {
-        target: process.env.BACKEND_URL ?? 'http://localhost:8000',
+        target: import.meta.env.BACKEND_URL ?? 'http://localhost:8000',
         changeOrigin: true,
       },
     },

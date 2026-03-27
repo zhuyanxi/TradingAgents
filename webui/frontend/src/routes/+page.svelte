@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { Checkbox, RadioGroup, Select, Separator } from 'bits-ui';
+  import { Checkbox, Label, RadioGroup, Select, Separator } from 'bits-ui';
   import { api } from '$lib/api';
   import type { WizardState, Provider, ModelOption, DepthOption, AnalystOption, ThinkingOption } from '$lib/types';
 
@@ -19,7 +19,8 @@
   // ── Form state ────────────────────────────────────────────────────────────
   let ticker = $state('');
   let analysisDate = $state(new Date().toISOString().slice(0, 10));
-  let selectedAnalysts = $state<string[]>(['market', 'news', 'fundamentals']);
+  // let selectedAnalysts = $state<string[]>(['market', 'news', 'fundamentals']);
+  let selectedAnalysts = $state<string[]>([]);
   let researchDepth = $state<number>(1);
   let selectedProvider = $state<Provider | null>(null);
   let shallowModel = $state('');
@@ -222,7 +223,7 @@
               class="w-5 h-5 rounded border flex items-center justify-center flex-shrink-0 transition-colors
                      {checked ? 'bg-green-600 border-green-600' : 'border-gray-600'}"
             >
-              <Checkbox.Indicator class="text-white text-xs">✓</Checkbox.Indicator>
+              {#if checked}<span class="text-white text-xs">✓</span>{/if}
             </div>
             <span class="text-sm {checked ? 'text-white' : 'text-gray-400'}">{analyst.label}</span>
           </Checkbox.Root>
@@ -241,7 +242,7 @@
           >
             <div class="mt-0.5 w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center
                         {checked ? 'border-green-500' : 'border-gray-500'}">
-              <RadioGroup.Indicator class="w-2 h-2 rounded-full bg-green-500" />
+              {#if checked}<div class="w-2 h-2 rounded-full bg-green-500"></div>{/if}
             </div>
             <div>
               <p class="text-sm font-medium {checked ? 'text-white' : 'text-gray-300'}">{opt.label}</p>
@@ -266,7 +267,7 @@
           >
             <div class="w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center
                         {checked ? 'border-green-500' : 'border-gray-500'}">
-              <RadioGroup.Indicator class="w-2 h-2 rounded-full bg-green-500" />
+              {#if checked}<div class="w-2 h-2 rounded-full bg-green-500"></div>{/if}
             </div>
             <div class="flex-1 min-w-0">
               <span class="text-sm font-medium {checked ? 'text-white' : 'text-gray-300'}">{prov.label}</span>
@@ -281,7 +282,7 @@
       <div class="flex flex-col gap-5">
         <!-- Shallow / Quick -->
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">Quick-Thinking Model</label>
+          <!-- <label class="block text-sm font-medium text-gray-300 mb-2">Quick-Thinking Model</label> -->
           <Select.Root
             type="single"
             value={shallowModel}
@@ -291,7 +292,7 @@
               class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white
                      flex items-center justify-between focus:outline-none focus:border-green-600 hover:border-gray-600"
             >
-              <Select.Value placeholder="Select model…" />
+              <span class="truncate">{shallowModels.find(m => m.value === shallowModel)?.label ?? 'Select model…'}</span>
               <span class="text-gray-500 ml-2">▾</span>
             </Select.Trigger>
             <Select.Content
@@ -305,18 +306,21 @@
                            hover:bg-gray-700 text-gray-300 hover:text-white
                            data-[highlighted]:bg-gray-700 data-[highlighted]:text-white"
                   >
-                    <Select.ItemIndicator class="text-green-400">✓</Select.ItemIndicator>
-                    {m.label}
+                    {#snippet children({ selected })}
+                      {#if selected}<span class="text-green-400">✓</span>{/if}
+                      {m.label}
+                    {/snippet}
                   </Select.Item>
                 {/each}
               </Select.Viewport>
             </Select.Content>
           </Select.Root>
+          <Label.Root class="text-xs text-gray-600 mt-1">Quick-Thinking Model</Label.Root>
         </div>
 
         <!-- Deep -->
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">Deep-Thinking Model</label>
+          <!-- <label class="block text-sm font-medium text-gray-300 mb-2">Deep-Thinking Model</label> -->
           <Select.Root
             type="single"
             value={deepModel}
@@ -326,7 +330,7 @@
               class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white
                      flex items-center justify-between focus:outline-none focus:border-green-600 hover:border-gray-600"
             >
-              <Select.Value placeholder="Select model…" />
+              <span class="truncate">{deepModels.find(m => m.value === deepModel)?.label ?? 'Select model…'}</span>
               <span class="text-gray-500 ml-2">▾</span>
             </Select.Trigger>
             <Select.Content
@@ -340,13 +344,16 @@
                            hover:bg-gray-700 text-gray-300 hover:text-white
                            data-[highlighted]:bg-gray-700 data-[highlighted]:text-white"
                   >
-                    <Select.ItemIndicator class="text-green-400">✓</Select.ItemIndicator>
-                    {m.label}
+                    {#snippet children({ selected })}
+                      {#if selected}<span class="text-green-400">✓</span>{/if}
+                      {m.label}
+                    {/snippet}
                   </Select.Item>
                 {/each}
               </Select.Viewport>
             </Select.Content>
           </Select.Root>
+          <Label.Root class="text-xs text-gray-600 mt-1">Deep-Thinking Model</Label.Root>
         </div>
       </div>
 
@@ -367,7 +374,7 @@
               >
                 <div class="w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center
                             {checked ? 'border-green-500' : 'border-gray-500'}">
-                  <RadioGroup.Indicator class="w-2 h-2 rounded-full bg-green-500" />
+                  {#if checked}<div class="w-2 h-2 rounded-full bg-green-500"></div>{/if}
                 </div>
                 <span class="text-sm {checked ? 'text-white' : 'text-gray-300'}">{opt.label}</span>
               </RadioGroup.Item>
